@@ -1713,7 +1713,6 @@
                 </div>
             );
         };
-
         function MomentumApp() {
             // Language state
             const [lang, setLang] = useState(() => storage.get('momentum_lang', 'en'));
@@ -1730,7 +1729,11 @@
             const [showPaywall, setShowPaywall] = useState(false);
             const [showMaxPaywall, setShowMaxPaywall] = useState(false);
             const [proSince, setProSince] = useState(() => storage.get('momentum_pro_since', null));
-            const [notificationsEnabled, setNotificationsEnabled] = useState(() => Notification.permission === 'granted');
+            
+            // --- FIX 1: Safely check for Notification permission to prevent mobile crash ---
+            const [notificationsEnabled, setNotificationsEnabled] = useState(() => 
+                typeof Notification !== 'undefined' && Notification.permission === 'granted'
+            );
 
             const trialDaysLeft = useMemo(() => { if (isPro || isMax) return 0; if (!trialStart) return 0; const daysPassed = Math.floor((new Date() - new Date(trialStart)) / (1000 * 60 * 60 * 24)); return Math.max(0, 7 - daysPassed); }, [trialStart, isPro, isMax]);
             const isTrialActive = trialDaysLeft > 0;
@@ -2533,7 +2536,9 @@
             );
         }
 
-        ReactDOM.render(<MomentumApp />, document.getElementById('root'));
+        // --- FIX 2: Use createRoot instead of render to support React 18 and prevent mobile white screen ---
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<MomentumApp />);
     </script>
 </body>
 </html>
